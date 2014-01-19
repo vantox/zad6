@@ -1,60 +1,110 @@
 #ifndef MOJAGRUBARYBA_H
 #define MOJAGRUBARYBA_H
 
-#include<vector>
+#include <vector>
 #include "grubaryba.h"
+#include <string>
 
 using namespace std;
 
 const int MAX_PLAYERS = 8;
 
+class Player {
+	private:
+		int money;
+		int wait;
+		string name;
+
+	protected:
+		//TODO const&
+		void setName(string _name);
+	public:
+		int getMoney();
+
+		int getWait();
+
+		virtual ~Player() {}
+
+		// Zwraca imię człowieka.
+		string const& getName() const;
+
+		// Zwraca true, jeśli człowiek chce kupić daną posiadłość.
+		virtual bool wantBuy(std::string const& propertyName) = 0;
+
+		// Zwraca true, jeśli człowiek chce sprzedać daną posiadłość.
+		// Wywoływane w przypadku, gdy brakuje człowiekowi pieniędzy na zakup lub opłaty.
+		virtual bool wantSell(std::string const& propertyName) = 0;
+};
+
+// TODO zintegrowac z humanem z grubaryba.h
+class HumanPlayer : public Player {
+
+};
+
+class ComputerPlayer : public Player {
+	private:
+		static unsigned int numberOfCompPlayers;
+	protected:
+		unsigned int getNumberOfCompPlayers();
+		void incrNumberOfCompPlayers();
+};
+
+// SMARTASS - kupuje wszystkie pola, na których stanie i są możliwe do kupienia.
+class SmartAssComputer : public ComputerPlayer {
+	public:
+		SmartAssComputer();
+		~SmartAssComputer() {}
+
+		bool wantBuy(std::string const& propertyName);
+
+		bool wantSell(std::string const& propertyName);
+};
+
+// DUMB - kupuje co trzecie pole, na którym stanie i jest możliwe do kupienia;
+class DumbComputer : public ComputerPlayer {
+	private:
+		int movesNumber;
+	public:
+		DumbComputer();
+		~DumbComputer() {}
+
+		bool wantBuy(std::string const& propertyName);
+
+		bool wantSell(std::string const& propertyName);
+};
+
 class Field {
 	private:
 		string name;
 	public:
-		string getName(){return name;}
-		virtual void onStep(Player& p);//co się dzieje po przejściu przez pole
-		virtual void onStop(Player& p);//co się dzieje po zatrzymaniu na polu
-}
+		Field();
+		~Field();
+		string getName();
+		// co się dzieje po przejściu przez pole
+		virtual void onStep(Player& p) = 0;
+		// co się dzieje po zatrzymaniu na polu
+		virtual void onStop(Player& p) = 0;
+};
 
 class Board {
 	private:
 		int maxField;
-		vector<Field> fields;
-		
+		vector< shared_ptr<Field> > fields;
 	public:
-		Board(vector<Field>& allFields) : fields(allFields){}
-		int getMaxField() {return maxField;}
-		Field& getField(int nr) {return fields[nr];}
-}
-
-class Player {
-	private:
-		int money;
-		int wait; //ile kolejek jeszcze musi czekać
-	public:
-		int getMoney() {return money;}
-		int getWait() {return wait;}
-		virtual bool wantBuy(string const& propertyName);
-		virtual bool wantSell(string const& propertyName);
-}
-
-class HumanPlayer : public Player {
-
-	
-}
-
-class ComputerPlayer : public Player {
-	
-}
-
-		
+		// Board(vector<Field>& allFields);
+		// Board(vector<int>& allFields);
+		Board();
+		~Board();
+		int getMaxField();
+		// unique_ptr<Field> getField(int nr);
+};
 
 class MojaGrubaRyba : public GrubaRyba {
 	private:
 		int realPlayers, compPlayers;
-		vector<Player> players;
+		vector< shared_ptr<Player> > players;
 		Board board;
+		shared_ptr<Die> die;
 	public:
 		MojaGrubaRyba();
 		~MojaGrubaRyba();
