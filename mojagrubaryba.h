@@ -38,7 +38,15 @@ class Player {
 
 // TODO zintegrowac z humanem z grubaryba.h
 class HumanPlayer : public Player {
+	public:
+		HumanPlayer(std::shared_ptr<Human> human);
+		bool wantBuy(std::string const& propertyName);
 
+		bool wantSell(std::string const& propertyName);
+	private:
+		std::shared_ptr<Human> humanPtr;
+		
+	
 };
 
 class ComputerPlayer : public Player {

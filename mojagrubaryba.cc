@@ -53,6 +53,15 @@ bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumbe
 
 bool DumbComputer::wantSell(std::string const& propertyName) {return false; }
 
+HumanPlayer::HumanPlayer(std::shared_ptr<Human> human): humanPtr(human)
+{
+	setName(human->getName());
+}
+
+bool HumanPlayer::wantBuy(std::string const& propertyName) { return humanPtr->wantBuy(propertyName); }
+
+bool HumanPlayer::wantSell(std::string const& propertyName) {return humanPtr->wantSell(propertyName); }
+
 Field::Field()
 {
 	cout << "Field() called\n";
@@ -127,7 +136,7 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 // TODO Rzuca TooManyPlayersException, jeśli osiągnięto już maksymalną liczbę graczy.
 void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 {
-	MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>(human));
+	MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
 	MojaGrubaRyba::realPlayers++;
 	cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
 	cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
@@ -145,6 +154,7 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 // TODO Rzuca TooFewPlayersException, jeśli liczba graczy nie pozwala na rozpoczęcie gry.
 void MojaGrubaRyba::play(unsigned int rounds)
 {
+	cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
 	unsigned int roundNumber = 1;
 
 	while(rounds >= roundNumber)
@@ -156,5 +166,5 @@ void MojaGrubaRyba::play(unsigned int rounds)
 		cout << "Runda: " << roundNumber << endl;
 		roundNumber++;
 	}
-	cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
+	
 }
