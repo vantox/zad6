@@ -39,7 +39,7 @@ SmartAssComputer::SmartAssComputer()
 
 bool SmartAssComputer::wantBuy(std::string const& propertyName) { return true; }
 
-bool SmartAssComputer::wantSell(std::string const& propertyName) {return false; }
+bool SmartAssComputer::wantSell(std::string const& propertyName) { return false; }
 
 DumbComputer::DumbComputer()
 {
@@ -51,7 +51,7 @@ DumbComputer::DumbComputer()
 
 bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber % 3) == 0; }
 
-bool DumbComputer::wantSell(std::string const& propertyName) {return false; }
+bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
 HumanPlayer::HumanPlayer(std::shared_ptr<Human> human): humanPtr(human)
 {
@@ -60,12 +60,9 @@ HumanPlayer::HumanPlayer(std::shared_ptr<Human> human): humanPtr(human)
 
 bool HumanPlayer::wantBuy(std::string const& propertyName) { return humanPtr->wantBuy(propertyName); }
 
-bool HumanPlayer::wantSell(std::string const& propertyName) {return humanPtr->wantSell(propertyName); }
+bool HumanPlayer::wantSell(std::string const& propertyName) { return humanPtr->wantSell(propertyName); }
 
-Field::Field()
-{
-	cout << "Field() called\n";
-}
+Field::Field(string _name) : name(_name) { }
 
 Field::~Field()
 {
@@ -106,7 +103,7 @@ MojaGrubaRyba::~MojaGrubaRyba()
 // Jeżeli argumentem jest pusty wskaźnik, to nie wykonuje żadnej operacji (ale nie ma błędu).
 void MojaGrubaRyba::setDie(std::shared_ptr<Die> _die)
 {
-	if(_die)
+	if(!_die)
 		return;
 	cout << "MojaGrubaRyba::setDie(...) called\n";
 	die = _die;
@@ -159,6 +156,7 @@ void MojaGrubaRyba::play(unsigned int rounds)
 
 	while(rounds >= roundNumber)
 	{
+		cout << "Dice: " << (*die).roll() + (*die).roll() << endl;
 		for(auto it = MojaGrubaRyba::players.begin(); it != MojaGrubaRyba::players.end(); it++)
 		{
 			cout << (*it)->getName() << endl;
@@ -166,5 +164,5 @@ void MojaGrubaRyba::play(unsigned int rounds)
 		cout << "Runda: " << roundNumber << endl;
 		roundNumber++;
 	}
-	
+
 }

@@ -13,6 +13,7 @@ class Player {
 	private:
 		int money;
 		int wait;
+		//TODO const
 		string name;
 
 	protected:
@@ -45,8 +46,6 @@ class HumanPlayer : public Player {
 		bool wantSell(std::string const& propertyName);
 	private:
 		std::shared_ptr<Human> humanPtr;
-		
-	
 };
 
 class ComputerPlayer : public Player {
@@ -83,15 +82,105 @@ class DumbComputer : public ComputerPlayer {
 
 class Field {
 	private:
+		//TODO const
 		string name;
 	public:
-		Field();
+		Field(string _name);
 		~Field();
 		string getName();
 		// co się dzieje po przejściu przez pole
-		virtual void onStep(Player& p) = 0;
+		virtual void onStep(Player const& p) = 0;
 		// co się dzieje po zatrzymaniu na polu
-		virtual void onStop(Player& p) = 0;
+		virtual void onStop(Player const& p) = 0;
+};
+
+class FieldWithAction : Field {
+};
+
+class FieldWithoutAction : Field {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Start : public FieldWithoutAction {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Nagroda : public FieldWithAction {
+};
+
+class Kara : public FieldWithAction {
+};
+
+class Depozyt : public FieldWithAction {
+};
+
+// TODO zamienic na konkretna implementacje
+class Akwarium : public FieldWithAction {
+};
+
+class Nieruchomosc : public FieldWithAction {
+};
+
+class Koralowiec : public Nieruchomosc {
+};
+
+class Publiczny : public Nieruchomosc {
+};
+
+class Anemonia : public Koralowiec {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+//TODO
+class Wyspa : public FieldWithoutAction {
+};
+
+class Grota : public Publiczny {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Menella : public Koralowiec {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Laguna : public Depozyt {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Statek : public Publiczny {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Blazenki : public Nagroda {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Pennatula : public Koralowiec {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
+};
+
+class Rekin : public Kara {
+	public:
+		void onStep(Player const& p);
+		void onStop(Player const& p);
 };
 
 class Board {
