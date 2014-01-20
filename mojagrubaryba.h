@@ -21,13 +21,15 @@ class Player {
 		//TODO const&
 		void setName(string _name);
 	public:
-		
+		void bankrupt();
 		void setPosition(int _position);
 		void setMoney(int _money);
+		void setWait(int _wait);
 		int getMoney();
 		int getPosition() const;
 		int getWait();
-
+		int takeMoney(int _money);
+		void giveMoney(int _money);
 		virtual ~Player() {}
 
 		// Zwraca imię człowieka.
@@ -86,10 +88,10 @@ class DumbComputer : public ComputerPlayer {
 
 class Field {
 	private:
-		//TODO const
-		string name;
+		//TODO const dalem protected żeby można było konstruktorem z podklasy przypisać
+		//string name;
 	protected:
-		void setName(string _name);
+		string name;
 	public:
 		//Field(string _name);
 		~Field();
@@ -104,14 +106,50 @@ class Wyspa : public Field {
 	public:
 		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
-		Wyspa();
+		Wyspa(const string& _name);
 };
 
 class Start : public Field {
 	public:
 		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
-		Start();
+		Start(const string& _name);
+};
+
+class Depozyt : public Field {
+	private:
+		int gatheredMoney;
+	public:
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Depozyt(const string& _name);
+};
+
+class Akwarium : public Field {
+	private:
+		int rounds;
+	public:
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Akwarium(const string& _name, int _rounds);
+};
+
+class Nagroda : public Field {
+	private:
+		int prize;
+	public:
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Nagroda(const string& _name, int _prize);
+};
+
+class Kara : public Field {
+	private:
+		int fine;
+	public:
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Kara(const string& _name, int _fine);
 };
 /*
 class FieldWithAction : public Field {
