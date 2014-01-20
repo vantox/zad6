@@ -227,8 +227,8 @@ Board::Board()
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
 	//TODO jak sie odkomentuje akwarium to trzeba zakomentowac jedna wyspe zeby dalej 12 pol bylo
 	//wtedy core dumped w 4 rundzie przy ruchu 3 gracza leci
-	//fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Akwarium>(new Akwarium("Akwarium", 3))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Akwarium>(new Akwarium("Akwarium", 3))));
+	//fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Nagroda>(new Nagroda("Blazenki", 120))));
@@ -329,7 +329,7 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				
 				
 				for(int i = 1; i < rolls; i++)
-					board.getField(it->getPosition() + i)->onStep(it);
+					board.getField((it->getPosition() + i) % board.getMaxField())->onStep(it);
 				
 				it->setPosition((it->getPosition() + rolls) % board.getMaxField());
 				
@@ -340,7 +340,7 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				cout << "Rolls: " << rolls << "\n";
 			}
 			else{
-				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " *** czekanie: " << it->getWait() << " ***\n";
+				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << "("<<it->getPosition() << ")" << " *** czekanie: " << it->getWait() << " ***\n";
 				it->setWait(it->getWait() - 1);
 			}
 				
