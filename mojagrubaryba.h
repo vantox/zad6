@@ -9,6 +9,7 @@ using namespace std;
 
 const int MAX_PLAYERS = 8;
 
+class Nieruchomosc;
 class Player {
 	private:
 		int money;
@@ -16,11 +17,15 @@ class Player {
 		int position;
 		//TODO const
 		string name;
+		//z shared jest double free bo tu trzymamy tylko pola dla ktorych
+		//potem i tak sie destruktory wywolaja
+		vector<Nieruchomosc*> properties;
 
 	protected:
 		//TODO const&
 		void setName(string _name);
 	public:
+		void addProperty(Nieruchomosc& property);
 		void bankrupt();
 		void setPosition(int _position);
 		void setMoney(int _money);
@@ -151,6 +156,32 @@ class Kara : public Field {
 		void onStop(shared_ptr<Player> const p);
 		Kara(const string& _name, int _fine);
 };
+
+class Nieruchomosc : public Field {
+	protected:
+		bool owned;
+		shared_ptr<Player> owner;
+		int price, charge;
+	public:
+		void setOwner(shared_ptr<Player> const p);
+		shared_ptr<Player> getOwner();
+		int getPrice();
+		bool getOwned();
+		int getCharge();
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);		
+};
+
+class Koralowiec : public Nieruchomosc {
+	public:
+		Koralowiec(const string& _name, int _price);
+};
+
+class Publiczny : public Nieruchomosc {
+	public:
+		Publiczny(const string& _name, int _price);
+};
+
 /*
 class FieldWithAction : public Field {
 };

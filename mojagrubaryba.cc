@@ -62,6 +62,11 @@ int Player::getPosition() const
 	return position;
 }
 
+void Player::addProperty(Nieruchomosc& property)
+{
+	properties.push_back(&property);
+}
+
 unsigned int ComputerPlayer::numberOfCompPlayers = 0;
 
 void ComputerPlayer::incrNumberOfCompPlayers()
@@ -125,6 +130,31 @@ Field::~Field()
 }
 
 string Field::getName() { return name; }
+
+void Nieruchomosc::setOwner(shared_ptr<Player> const p)
+{
+	owner = p;
+}
+		
+shared_ptr<Player> Nieruchomosc::getOwner()
+{
+	return owner;
+}
+
+int Nieruchomosc::getPrice()
+{
+	return price;
+}
+
+int Nieruchomosc::getCharge()
+{
+	return charge;
+}
+
+bool Nieruchomosc::getOwned()
+{
+	return owned;
+}
 
 Wyspa::Wyspa(const string& _name)
 {
@@ -215,25 +245,86 @@ void Akwarium::onStop(shared_ptr<Player> const p)
 	p->setWait(rounds);
 }
 
+Koralowiec::Koralowiec(const string& _name, int _price)
+{
+	name = _name;
+	charge = _price / 5;
+	owned = false;
+	owner = nullptr;
+	price = _price;
+}
+
+Publiczny::Publiczny(const string& _name, int _price)
+{
+	name = _name;
+	charge = _price * 2 / 5;
+	owned = false;
+	owner = nullptr;
+	price = _price;
+}
+
+void Nieruchomosc::onStep(shared_ptr<Player> const p)
+{
+}
+
+void Nieruchomosc::onStop(shared_ptr<Player> const p)
+{
+	if(owned){
+		owner->giveMoney(p->takeMoney(charge));
+	}
+	else{
+		if(p->getMoney() >= price){
+			if(p->wantBuy(getName())){
+				p->takeMoney(price);
+				p->addProperty(*this);
+				setOwner(p);
+			}
+		}
+	}
+}
 		
 Board::Board()
 {
+	/*
+	 * 1. Start
+2. Anemonia
+* Koralowiec (ukwiał Anemonia), cena kupna 160
+3. Wyspa
+* Odpoczywasz na wyspie, nic się nie dzieje
+4. Aporina
+* Koralowiec (koral madreporowy Aporina), cena kupna 220
+5. Akwarium
+* Akwarium: wpadłeś do akwarium, czekasz 3 kolejki
+6. Grota
+* Obiekt użyteczności publicznej (hotel w zacisznej grocie), cena kupna 300
+7. Menella
+* Koralowiec (gorgonia Menella), cena kupna 280
+8. Laguna
+* Depozyt: przy przechodzeniu gubisz 15 rybkoinów; przy zatrzymaniu znajdujesz wszystkie zgubione rybkoiny
+9. Statek
+* Obiekt użyteczności publicznej (restauracja we wraku statku), cena kupna 250
+10. Blazenki
+* Nagroda: dostajesz wypłatę 120 rybkoinów
+11. Pennatula
+* Koralowiec (pióro morskie Pennatula), cena kupna 400
+12. Rekin
+* Kara: spotykasz rekina biznesu, żeby umknąć z życiem płacisz 180 rybkoinów
+*/
+	
+	
 	cout << "Board() called\n";
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Start>(new Start("Start"))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Anemonia", 160))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Kara>(new Kara("Rekin", 180))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	//TODO jak sie odkomentuje akwarium to trzeba zakomentowac jedna wyspe zeby dalej 12 pol bylo
-	//wtedy core dumped w 4 rundzie przy ruchu 3 gracza leci
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Aporina", 220))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Akwarium>(new Akwarium("Akwarium", 3))));
-	//fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Nagroda>(new Nagroda("Blazenki", 120))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Publiczny>(new Publiczny("Grota", 300))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Menella", 280))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Depozyt>(new Depozyt("Laguna"))));
-	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Publiczny>(new Publiczny("Statek", 250))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Nagroda>(new Nagroda("Blazenki", 120))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Pennatula", 400))));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Kara>(new Kara("Rekin", 180))));
 	
 }
 
@@ -337,7 +428,7 @@ void MojaGrubaRyba::play(unsigned int rounds)
 			}
 			if(!it->getWait()){
 				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << "("<<it->getPosition() << ")" << " gotowka: " << it->getMoney() << "\n";
-				cout << "Rolls: " << rolls << "\n";
+				//cout << "Rolls: " << rolls << "\n";
 			}
 			else{
 				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << "("<<it->getPosition() << ")" << " *** czekanie: " << it->getWait() << " ***\n";
