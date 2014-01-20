@@ -13,6 +13,7 @@ class Player {
 	private:
 		int money;
 		int wait;
+		int position;
 		//TODO const
 		string name;
 
@@ -20,8 +21,11 @@ class Player {
 		//TODO const&
 		void setName(string _name);
 	public:
+		
+		void setPosition(int _position);
+		void setMoney(int _money);
 		int getMoney();
-
+		int getPosition() const;
 		int getWait();
 
 		virtual ~Player() {}
@@ -84,23 +88,39 @@ class Field {
 	private:
 		//TODO const
 		string name;
+	protected:
+		void setName(string _name);
 	public:
-		Field(string _name);
+		//Field(string _name);
 		~Field();
 		string getName();
 		// co się dzieje po przejściu przez pole
-		virtual void onStep(Player const& p) = 0;
+		virtual void onStep(shared_ptr<Player> const p) = 0;
 		// co się dzieje po zatrzymaniu na polu
-		virtual void onStop(Player const& p) = 0;
+		virtual void onStop(shared_ptr<Player> const p) = 0;
 };
 
-class FieldWithAction : Field {
-};
-
-class FieldWithoutAction : Field {
+class Wyspa : public Field {
 	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Wyspa();
+};
+
+class Start : public Field {
+	public:
+		void onStep(shared_ptr<Player> const p);
+		void onStop(shared_ptr<Player> const p);
+		Start();
+};
+/*
+class FieldWithAction : public Field {
+};
+
+class FieldWithoutAction : public Field {
+	public:
+		virtual void onStep(Player const& p);
+		virtual void onStop(Player const& p);
 };
 
 class Start : public FieldWithoutAction {
@@ -138,8 +158,7 @@ class Anemonia : public Koralowiec {
 };
 
 //TODO
-class Wyspa : public FieldWithoutAction {
-};
+
 
 class Grota : public Publiczny {
 	public:
@@ -182,30 +201,35 @@ class Rekin : public Kara {
 		void onStep(Player const& p);
 		void onStop(Player const& p);
 };
-
+*/
 class Board {
 	private:
-		int maxField;
+		//TODO chwilowo do testow potem sie zmieni
+		int maxField = 12;
 		vector< shared_ptr<Field> > fields;
 	public:
-		// Board(vector<Field>& allFields);
+		//Board(vector<Field>& allFields);
 		// Board(vector<int>& allFields);
 		Board();
 		~Board();
 		int getMaxField();
 		// unique_ptr<Field> getField(int nr);
+		shared_ptr<Field> getField(int nr);
 };
 
 class MojaGrubaRyba : public GrubaRyba {
 	private:
+		
 		int realPlayers, compPlayers;
 		vector< shared_ptr<Player> > players;
 		Board board;
 		shared_ptr<Die> die;
 	public:
+		static const int minPlayers = 2;
+		static const int maxPlayers = 8;
+		static const int startMoney = 1000;
 		MojaGrubaRyba();
 		~MojaGrubaRyba();
-
 		// Poziom gry komputera:
 		// DUMB - kupuje co trzecie pole, na którym stanie i jest możliwe do kupienia;
 		// SMARTASS - kupuje wszystkie pola, na których stanie i są możliwe do kupienia.

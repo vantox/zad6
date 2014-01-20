@@ -14,7 +14,25 @@ void Player::setName(string _name)
 	name = _name;
 }
 
-string const& Player::getName() const { return name; }
+void Player::setMoney(int  _money)
+{
+	money = _money;
+}
+
+void Player::setPosition(int _position)
+{
+	position = _position;
+}
+
+string const& Player::getName() const 
+{
+	return name;
+}
+
+int Player::getPosition() const 
+{ 
+	return position;
+}
 
 unsigned int ComputerPlayer::numberOfCompPlayers = 0;
 
@@ -35,6 +53,8 @@ SmartAssComputer::SmartAssComputer()
 	ostringstream tmp;
 	tmp << "Gracz" << getNumberOfCompPlayers();
 	setName(tmp.str());
+	setMoney(MojaGrubaRyba::startMoney);
+	
 }
 
 bool SmartAssComputer::wantBuy(std::string const& propertyName) { return true; }
@@ -47,6 +67,7 @@ DumbComputer::DumbComputer()
 	ostringstream tmp;
 	tmp << "Gracz" << getNumberOfCompPlayers();
 	setName(tmp.str());
+	setMoney(MojaGrubaRyba::startMoney);
 }
 
 bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber % 3) == 0; }
@@ -56,13 +77,19 @@ bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 HumanPlayer::HumanPlayer(std::shared_ptr<Human> human): humanPtr(human)
 {
 	setName(human->getName());
+	setMoney(MojaGrubaRyba::startMoney);
 }
 
 bool HumanPlayer::wantBuy(std::string const& propertyName) { return humanPtr->wantBuy(propertyName); }
 
 bool HumanPlayer::wantSell(std::string const& propertyName) { return humanPtr->wantSell(propertyName); }
 
-Field::Field(string _name) : name(_name) { }
+//Field::Field(string _name) : name(_name) { }
+void Field::setName(string _name)
+{
+	name = _name;
+}
+
 
 Field::~Field()
 {
@@ -71,10 +98,55 @@ Field::~Field()
 
 string Field::getName() { return name; }
 
+Wyspa::Wyspa() 
+{
+	setName("Wyspa");
+}
+
+void Wyspa::onStep(shared_ptr<Player> const p)
+{
+	
+}
+
+void Wyspa::onStop(shared_ptr<Player> const p)
+{
+
+	
+}
+
+Start::Start() 
+{
+	setName("Start");
+}
+
+void Start::onStep(shared_ptr<Player> const p)
+{
+	p->setMoney(p->getMoney() + 50);
+}
+
+void Start::onStop(shared_ptr<Player> const p)
+{
+	p->setMoney(p->getMoney() + 50);	
+}
+
+
 
 Board::Board()
 {
 	cout << "Board() called\n";
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Start>(new Start())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa())));
+
 }
 
 Board::~Board()
@@ -83,16 +155,18 @@ Board::~Board()
 }
 
 int Board::getMaxField() { return maxField; }
-// shared_ptr<Field> Board::getField(int nr) { return fields[nr]; }
+shared_ptr<Field> Board::getField(int nr) { return fields[nr]; }
 
-MojaGrubaRyba::MojaGrubaRyba()
+MojaGrubaRyba::MojaGrubaRyba() : realPlayers(0), compPlayers(0)
 {
-	cout << "MojaGrubaRuba() called\n";
+	cout << "MojaGrubaRyba() called\n";
+		
+	
 }
 
 MojaGrubaRyba::~MojaGrubaRyba()
 {
-	cout << "~MojaGrubaRuba() called\n";
+	cout << "~MojaGrubaRyba() called\n";
 }
 
 // Poziom gry komputera:
@@ -156,12 +230,25 @@ void MojaGrubaRyba::play(unsigned int rounds)
 
 	while(rounds >= roundNumber)
 	{
-		cout << "Dice: " << (*die).roll() + (*die).roll() << endl;
-		for(auto it = MojaGrubaRyba::players.begin(); it != MojaGrubaRyba::players.end(); it++)
+		//cout << "Dice: " << (*die).roll() + (*die).roll() << endl;
+		cout << "Runda: " << roundNumber << "-------------------------------------\n";
+		
+		for(auto it : players)
 		{
-			cout << (*it)->getName() << endl;
+			int rolls = die->roll() + die->roll();
+			cout << "Rolls: " << rolls << "\n";
+			
+			for(int i = 1; i < rolls; i++)
+				board.getField(it->getPosition() + i)->onStep(it);
+			
+			it->setPosition((it->getPosition() + rolls) % board.getMaxField());
+			
+			board.getField(it->getPosition())->onStop(it);
+			cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " gotowka: " << it->getMoney() << "\n";
+			
+			
+			
 		}
-		cout << "Runda: " << roundNumber << endl;
 		roundNumber++;
 	}
 
