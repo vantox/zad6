@@ -468,9 +468,11 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				rolls = die->roll() + die->roll();
 
 				for(int i = 1; i < rolls; i++)
-					board.getField((it->getPosition() + i) % board.getMaxField())->onStep(it);
+					if(it->isPlayerActive())
+						board.getField((it->getPosition() + i) % board.getMaxField())->onStep(it);
 
-				it->setPosition((it->getPosition() + rolls) % board.getMaxField());
+				if(it->isPlayerActive())
+					it->setPosition((it->getPosition() + rolls) % board.getMaxField());
 
 				board.getField(it->getPosition())->onStop(it);
 			}
