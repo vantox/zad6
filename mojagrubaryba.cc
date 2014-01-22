@@ -387,7 +387,7 @@ Board::~Board()
 int Board::getMaxField() { return maxField; }
 shared_ptr<Field> Board::getField(int nr) { return fields[nr]; }
 
-MojaGrubaRyba::MojaGrubaRyba() : realPlayers(0), compPlayers(0)
+MojaGrubaRyba::MojaGrubaRyba() : realPlayers(0), compPlayers(0), activePlayers(0)
 {
 	if(debug) cout << "MojaGrubaRyba() called\n";
 
@@ -426,6 +426,7 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 
 	// FIXME potrzebujemy tego?
 	MojaGrubaRyba::compPlayers++;
+	activePlayers++;
 
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
 	if(debug) cout << "MojaGrubaRyba::addComputerPlayer(...) called\n";
@@ -439,10 +440,12 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 {
 	MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
 	MojaGrubaRyba::realPlayers++;
+	activePlayers++;
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
 	if(debug) cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
 	//FIXME tutaj się sypie
 	if(debug) cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
+	
 }
 
 // Przeprowadza rozgrywkę co najwyżej podanej liczby rund (rozgrywka może
@@ -457,22 +460,23 @@ void MojaGrubaRyba::play(unsigned int rounds)
 {
 	if(debug) cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
 	unsigned int roundNumber = 1;
-	while(rounds >= roundNumber)
+	while((rounds >= roundNumber) && (activePlayers > 1))
 	{
 		cout << "Runda: " << roundNumber << "\n";
 		int rolls;
 		for(auto it : players)
 		{
-			if(players.size() == 1)
+			if(activePlayers == 1)
 				break;
 			// Jezeli gracz zbankrutowal pomijamy go w kolejnych turach
 			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
 			if(!it->isPlayerActive())
 			{
-				
 				continue;
 			}
-
+			if(it->getWait())
+				it->setWait(it->getWait() - 1);
+			
 			if(!it->getWait()) {
 
 				rolls = die->roll() + die->roll();
@@ -480,29 +484,37 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				for(int i = 1; i < rolls; i++)
 					if(it->isPlayerActive())
 						board.getField((it->getPosition() + i) % board.getMaxField())->onStep(it);
-					else
+					else 
 						continue;
-
+					
+				if(activePlayers == 1)
+					break;
+				
 				if(it->isPlayerActive())
 					it->setPosition((it->getPosition() + rolls) % board.getMaxField());
 				else
 					continue;
 
 				board.getField(it->getPosition())->onStop(it);
+				
 			}
+			if(!it->isPlayerActive())
+				activePlayers--;
+			
 			
 		}
 		
 		for(auto it : players){
 			if(!it->isPlayerActive()){
-				cout << it->getName() << " *** bankrut ***" << endl;
+				cout << it->getName() << " *** bankrut *** " << endl;
 			}
 			else if(!it->getWait()) {
 				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " gotowka: " << it->getMoney() << "\n";
 			}
 			else {
-				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " *** czekanie: " << it->getWait() << " ***" << "\n";
-				it->setWait(it->getWait() - 1);
+				
+				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " *** czekanie: " << it->getWait() << " *** " << "\n";
+				
 			}
 				
 			

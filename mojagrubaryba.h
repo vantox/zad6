@@ -212,7 +212,7 @@ class Board {
 
 class MojaGrubaRyba : public GrubaRyba {
 	private:
-		int realPlayers, compPlayers;
+		int realPlayers, compPlayers, activePlayers;
 		vector< shared_ptr<Player> > players;
 		Board board;
 		shared_ptr<Die> die;
