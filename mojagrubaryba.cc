@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//TODO ta funkcja jest nieco sztuczna ale realizuje obiektowość, zdecydować czy usuwamy
 void sellout(shared_ptr<Player> const p)
 {
 	// cout << "sellout(" << p->getName() << ") called, player have: $" << p->getMoney() << endl;
@@ -15,7 +16,10 @@ int Player::getMoney() { return money; }
 
 int Player::getWait() { return wait; }
 
-void Player::setName(string _name)
+bool Player::isPlayerActive() { return isActive; }
+
+// void Player::setName(string _name)
+void Player::setName(string const& _name)
 {
 	name = _name;
 }
@@ -32,16 +36,17 @@ void Player::setWait(int _wait)
 
 int Player::takeMoney(int _money)
 {
-	if(money >= _money) {
+	// Gracz posiada dostateczna liczbe pieniedzy na splate dlugu
+	if(money >= _money)
+	{
 		setMoney(money - _money);
 		return _money;
 	}
-	else {
-		//bierzemy tyle ile ma jeśli nie ma całości
-		int tmp = money;
+	// Spieniezamy majatek gracza
+	sellProperties();
+	if(money < _money)
 		bankrupt();
-		return tmp;
-	}
+	return min(_money, money);
 }
 
 void Player::giveMoney(int _money)
@@ -49,28 +54,31 @@ void Player::giveMoney(int _money)
 	setMoney(money + _money);
 }
 
-void Player::bankrupt()
-{
-}
-
 void Player::setPosition(int _position)
 {
 	position = _position;
 }
 
-string const& Player::getName() const 
+string const& Player::getName() const
 {
 	return name;
 }
 
-int Player::getPosition() const 
-{ 
+int Player::getPosition() const
+{
 	return position;
 }
 
 void Player::addProperty(Nieruchomosc& property)
 {
 	properties.push_back(&property);
+}
+
+void Player::sellProperty(vector<Nieruchomosc*>::iterator it)
+{
+	money += ((*it)->getPrice()) / 2;
+	(*it)->deleteOwner();
+	properties.erase(it);
 }
 
 void Player::sellProperties()
@@ -82,12 +90,29 @@ void Player::sellProperties()
 		cout << "and does" << (b ? "" : "n't") << " want to sell it" << endl;
 		//TODO moze wydzielic to wszystko do jednej metody w nieruchomosci?
 		if(b)
-		{
-			money += ((*it)->getPrice()) / 2;
-			(*it)->deleteOwner();
-			properties.erase(it);
-		}
+			sellProperty(it);
+		// {
+			// money += ((*it)->getPrice()) / 2;
+			// (*it)->deleteOwner();
+			// properties.erase(it);
+		// }
 	}
+}
+// TODO bankructwo wszystkich graczy??
+// TODO czy w przypadku bankructwa graczy na pewno chcemy zeby pieniadze wracaly do wlasciciela?
+void Player::bankrupt()
+{
+	cout << name << " bankrutuje" << endl;
+	for(auto it = properties.begin(); it < properties.end(); it++)
+		sellProperty(it);
+}
+
+ComputerPlayer::ComputerPlayer() : Player(MojaGrubaRyba::startMoney, 0, 0)
+{
+	incrNumberOfCompPlayers();
+	ostringstream tmp;
+	tmp << "Gracz" << getNumberOfCompPlayers();
+	setName(tmp.str());
 }
 
 unsigned int ComputerPlayer::numberOfCompPlayers = 0;
@@ -103,36 +128,35 @@ unsigned int ComputerPlayer::getNumberOfCompPlayers()
 }
 
 // TODO polaczyc z dumbcomputer()
-SmartAssComputer::SmartAssComputer()
+// SmartAssComputer::SmartAssComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
+SmartAssComputer::SmartAssComputer() : ComputerPlayer()
 {
-	incrNumberOfCompPlayers();
-	ostringstream tmp;
-	tmp << "Gracz" << getNumberOfCompPlayers();
-	setName(tmp.str());
-	setMoney(MojaGrubaRyba::startMoney);
-	setWait(0);
+	// incrNumberOfCompPlayers();
+	// ostringstream tmp;
+	// tmp << "Gracz" << getNumberOfCompPlayers();
+	// setName(tmp.str());
+	// setMoney(MojaGrubaRyba::startMoney);
+	// setWait(0);
 }
+
+Player::Player(int _money, int _wait, int _position) :
+money(_money), wait(_wait), position(_position), isActive(true) {}
+
+Player::Player() {}
 
 bool SmartAssComputer::wantBuy(std::string const& propertyName) { return true; }
 
 bool SmartAssComputer::wantSell(std::string const& propertyName) { return true; }
 // bool SmartAssComputer::wantSell(std::string const& propertyName) { return false; } FIXME
 
-DumbComputer::DumbComputer()
-{
-	incrNumberOfCompPlayers();
-	ostringstream tmp;
-	tmp << "Gracz" << getNumberOfCompPlayers();
-	setName(tmp.str());
-	setMoney(MojaGrubaRyba::startMoney);
-	setWait(0);
-}
+// DumbComputer::DumbComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
+DumbComputer::DumbComputer() : ComputerPlayer() { }
 
 bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber % 3) == 0; }
 
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
-HumanPlayer::HumanPlayer(std::shared_ptr<Human> human): humanPtr(human)
+HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : humanPtr(human)
 {
 	setName(human->getName());
 	setMoney(MojaGrubaRyba::startMoney);
@@ -228,7 +252,6 @@ void Depozyt::onStep(shared_ptr<Player> const p)
 {
 	gatheredMoney += p->takeMoney(15);
 	cout << "Depozyt" << endl;
-	sellout(p);
 }
 
 void Depozyt::onStop(shared_ptr<Player> const p)
@@ -322,35 +345,9 @@ void Nieruchomosc::onStop(shared_ptr<Player> const p)
 		}
 	}
 }
-		
+
 Board::Board()
 {
-	/*
-	 * 1. Start
-	2. Anemonia
-	* Koralowiec (ukwiał Anemonia), cena kupna 160
-	3. Wyspa
-	* Odpoczywasz na wyspie, nic się nie dzieje
-	4. Aporina
-	* Koralowiec (koral madreporowy Aporina), cena kupna 220
-	5. Akwarium
-	* Akwarium: wpadłeś do akwarium, czekasz 3 kolejki
-	6. Grota
-	* Obiekt użyteczności publicznej (hotel w zacisznej grocie), cena kupna 300
-	7. Menella
-	* Koralowiec (gorgonia Menella), cena kupna 280
-	8. Laguna
-	* Depozyt: przy przechodzeniu gubisz 15 rybkoinów; przy zatrzymaniu znajdujesz wszystkie zgubione rybkoiny
-	9. Statek
-	* Obiekt użyteczności publicznej (restauracja we wraku statku), cena kupna 250
-	10. Blazenki
-	* Nagroda: dostajesz wypłatę 120 rybkoinów
-	11. Pennatula
-	* Koralowiec (pióro morskie Pennatula), cena kupna 400
-	12. Rekin
-	* Kara: spotykasz rekina biznesu, żeby umknąć z życiem płacisz 180 rybkoinów
-	*/
-
 	cout << "Board() called\n";
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Start>(new Start("Start"))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Anemonia", 160))));
@@ -364,7 +361,6 @@ Board::Board()
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Nagroda>(new Nagroda("Blazenki", 120))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Pennatula", 400))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Kara>(new Kara("Rekin", 180))));
-	
 }
 
 Board::~Board()
@@ -444,13 +440,17 @@ void MojaGrubaRyba::play(unsigned int rounds)
 {
 	cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
 	unsigned int roundNumber = 1;
-
 	while(rounds >= roundNumber)
 	{
 		cout << "Runda: " << roundNumber << "-------------------------------------\n";
 		int rolls;
 		for(auto it : players)
 		{
+			// Jezeli gracz zbankrutowal pomijamy go w kolejnych turach
+			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
+			if(!it->isPlayerActive())
+				continue;
+
 			if(!it->getWait()) {
 
 				rolls = die->roll() + die->roll();

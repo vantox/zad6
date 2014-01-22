@@ -15,16 +15,21 @@ class Player {
 		int money;
 		int wait;
 		int position;
+		bool isActive;
 		//TODO const
 		string name;
 		//z shared jest double free bo tu trzymamy tylko pola dla ktorych
 		//potem i tak sie destruktory wywolaja
 		vector<Nieruchomosc*> properties;
+		void sellProperty(vector<Nieruchomosc*>::iterator it);
 
 	protected:
 		//TODO const&
-		void setName(string _name);
+		void setName(string const& _name);
 	public:
+		//TODO
+		Player();
+		Player(int _money, int _wait, int _position);
 		void addProperty(Nieruchomosc& property);
 		void sellProperties();
 		void bankrupt();
@@ -34,6 +39,7 @@ class Player {
 		int getMoney();
 		int getPosition() const;
 		int getWait();
+		bool isPlayerActive();
 		int takeMoney(int _money);
 		void giveMoney(int _money);
 		virtual ~Player() {}
@@ -68,6 +74,8 @@ class ComputerPlayer : public Player {
 	protected:
 		unsigned int getNumberOfCompPlayers();
 		void incrNumberOfCompPlayers();
+	public:
+		ComputerPlayer();
 };
 
 // SMARTASS - kupuje wszystkie pola, na których stanie i są możliwe do kupienia.
@@ -186,94 +194,6 @@ class Publiczny : public Nieruchomosc {
 	public:
 		Publiczny(const string& _name, int _price);
 };
-
-/*
-class FieldWithAction : public Field {
-};
-
-class FieldWithoutAction : public Field {
-	public:
-		virtual void onStep(Player const& p);
-		virtual void onStop(Player const& p);
-};
-
-class Start : public FieldWithoutAction {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Nagroda : public FieldWithAction {
-};
-
-class Kara : public FieldWithAction {
-};
-
-class Depozyt : public FieldWithAction {
-};
-
-// TODO zamienic na konkretna implementacje
-class Akwarium : public FieldWithAction {
-};
-
-class Nieruchomosc : public FieldWithAction {
-};
-
-class Koralowiec : public Nieruchomosc {
-};
-
-class Publiczny : public Nieruchomosc {
-};
-
-class Anemonia : public Koralowiec {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-//TODO
-class Grota : public Publiczny {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Menella : public Koralowiec {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Laguna : public Depozyt {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Statek : public Publiczny {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Blazenki : public Nagroda {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Pennatula : public Koralowiec {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-
-class Rekin : public Kara {
-	public:
-		void onStep(Player const& p);
-		void onStop(Player const& p);
-};
-*/
 
 class Board {
 	private:
