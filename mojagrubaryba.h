@@ -26,6 +26,7 @@ class Player {
 		void setName(string _name);
 	public:
 		void addProperty(Nieruchomosc& property);
+		void sellProperties();
 		void bankrupt();
 		void setPosition(int _position);
 		void setMoney(int _money);
@@ -47,6 +48,8 @@ class Player {
 		// Wywoływane w przypadku, gdy brakuje człowiekowi pieniędzy na zakup lub opłaty.
 		virtual bool wantSell(std::string const& propertyName) = 0;
 };
+
+void sellout(shared_ptr<Player> const p);
 
 // TODO zintegrowac z humanem z grubaryba.h
 class HumanPlayer : public Player {
@@ -163,13 +166,15 @@ class Nieruchomosc : public Field {
 		shared_ptr<Player> owner;
 		int price, charge;
 	public:
+		void changeOwnedState(bool b);
 		void setOwner(shared_ptr<Player> const p);
+		void deleteOwner();
 		shared_ptr<Player> getOwner();
 		int getPrice();
 		bool getOwned();
 		int getCharge();
 		void onStep(shared_ptr<Player> const p);
-		void onStop(shared_ptr<Player> const p);		
+		void onStop(shared_ptr<Player> const p);
 };
 
 class Koralowiec : public Nieruchomosc {
@@ -227,8 +232,6 @@ class Anemonia : public Koralowiec {
 };
 
 //TODO
-
-
 class Grota : public Publiczny {
 	public:
 		void onStep(Player const& p);
@@ -271,6 +274,7 @@ class Rekin : public Kara {
 		void onStop(Player const& p);
 };
 */
+
 class Board {
 	private:
 		//TODO chwilowo do testow potem sie zmieni
@@ -288,7 +292,6 @@ class Board {
 
 class MojaGrubaRyba : public GrubaRyba {
 	private:
-		
 		int realPlayers, compPlayers;
 		vector< shared_ptr<Player> > players;
 		Board board;
