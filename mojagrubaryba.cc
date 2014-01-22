@@ -455,6 +455,8 @@ void MojaGrubaRyba::play(unsigned int rounds)
 		int rolls;
 		for(auto it : players)
 		{
+			if(players.size() == 1)
+				break;
 			// Jezeli gracz zbankrutowal pomijamy go w kolejnych turach
 			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
 			if(!it->isPlayerActive())
@@ -470,9 +472,13 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				for(int i = 1; i < rolls; i++)
 					if(it->isPlayerActive())
 						board.getField((it->getPosition() + i) % board.getMaxField())->onStep(it);
+					else
+						continue;
 
 				if(it->isPlayerActive())
 					it->setPosition((it->getPosition() + rolls) % board.getMaxField());
+				else
+					continue;
 
 				board.getField(it->getPosition())->onStop(it);
 			}
