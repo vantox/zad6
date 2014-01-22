@@ -41,6 +41,6 @@ int main(int argc, const char * argv[]) {
     mgr->addComputerPlayer(GrubaRyba::ComputerLevel::SMARTASS);
     mgr->addHumanPlayer(albin);
     // mgr->play(20); FIXME
-    mgr->play(30);
+    mgr->play(40);
     return 0;
 }

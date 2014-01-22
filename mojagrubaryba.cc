@@ -6,11 +6,11 @@
 using namespace std;
 
 //TODO ta funkcja jest nieco sztuczna ale realizuje obiektowość, zdecydować czy usuwamy
-void sellout(shared_ptr<Player> const p)
-{
+// void sellout(shared_ptr<Player> const p)
+// {
 	// cout << "sellout(" << p->getName() << ") called, player have: $" << p->getMoney() << endl;
-	p->sellProperties();
-}
+	// p->sellProperties();
+// }
 
 int Player::getMoney() { return money; }
 
@@ -40,12 +40,14 @@ int Player::takeMoney(int _money)
 	if(money >= _money)
 	{
 		setMoney(money - _money);
+		cout << "Gracz " << getName() << " oddaje " << _money << endl;
 		return _money;
 	}
 	// Spieniezamy majatek gracza
 	sellProperties();
 	if(money < _money)
 		bankrupt();
+		cout << "Gracz " << getName() << " oddaje " << min(_money, money) << endl;
 	return min(_money, money);
 }
 
@@ -76,6 +78,7 @@ void Player::addProperty(Nieruchomosc& property)
 
 void Player::sellProperty(vector<Nieruchomosc*>::iterator it)
 {
+	cout << "Gracz " << getName() << " sprzedaje " << (*it)->getName() << " z zyskiem " << ((*it)->getPrice()) / 2 << endl;
 	money += ((*it)->getPrice()) / 2;
 	(*it)->deleteOwner();
 	properties.erase(it);
@@ -105,11 +108,18 @@ void Player::bankrupt()
 	cout << name << " bankrutuje" << endl;
 	for(auto it = properties.begin(); it < properties.end(); it++)
 		sellProperty(it);
+	isActive = false;
 }
 
-ComputerPlayer::ComputerPlayer() : Player(MojaGrubaRyba::startMoney, 0, 0)
+Player::Player(int _money, int _wait, int _position) :
+money(_money), wait(_wait), position(_position), isActive(true) { }
+
+Player::Player( ): Player(0, 0, 0) { }
+
+ComputerPlayer::ComputerPlayer() : Player()
 {
 	incrNumberOfCompPlayers();
+	setMoney(MojaGrubaRyba::startMoney);
 	ostringstream tmp;
 	tmp << "Gracz" << getNumberOfCompPlayers();
 	setName(tmp.str());
@@ -139,11 +149,6 @@ SmartAssComputer::SmartAssComputer() : ComputerPlayer()
 	// setWait(0);
 }
 
-Player::Player(int _money, int _wait, int _position) :
-money(_money), wait(_wait), position(_position), isActive(true) {}
-
-Player::Player() {}
-
 bool SmartAssComputer::wantBuy(std::string const& propertyName) { return true; }
 
 bool SmartAssComputer::wantSell(std::string const& propertyName) { return true; }
@@ -156,11 +161,11 @@ bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumbe
 
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
-HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : humanPtr(human)
+// TODO Player() niepotrzebny na liscie inicjalizacyjnej, ale tak jest chyba czytelniej
+HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : humanPtr(human), Player()
 {
 	setName(human->getName());
 	setMoney(MojaGrubaRyba::startMoney);
-	setWait(0);
 }
 
 bool HumanPlayer::wantBuy(std::string const& propertyName) { return humanPtr->wantBuy(propertyName); }
@@ -287,7 +292,7 @@ void Kara::onStop(shared_ptr<Player> const p)
 {
 	p->takeMoney(fine);
 	cout << "Kara" << endl;
-	sellout(p);
+	// sellout(p);
 }
 
 Akwarium::Akwarium(const string& _name, int _rounds) : rounds(_rounds)
@@ -328,16 +333,19 @@ void Nieruchomosc::onStep(shared_ptr<Player> const p)
 
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
 {
-	if(owned) {
+	if(owned)
+	{
 		owner->giveMoney(p->takeMoney(charge));
 		//FIXME gracz A ma $100, po wejsciu ma oddac $200, ale nie posiada nieruchomosci
 		//wiec wlasciciel powinien otrzymac $100, afaik mamy oddawanie pelnej kwoty
 		cout << "Nieruchomosc" << endl;
-		sellout(p);
+		// sellout(p);
 	}
-	else {
+	else
+	{
 		if(p->getMoney() >= price) {
 			if(p->wantBuy(getName())) {
+				cout << "Gracz " << p->getName() << " kupuje " << getName() << " za " << getPrice() << endl;
 				p->takeMoney(price);
 				p->addProperty(*this);
 				setOwner(p);
@@ -408,6 +416,7 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 	if(level == GrubaRyba::ComputerLevel::SMARTASS)
 		MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer())));
 
+	// FIXME potrzebujemy tego?
 	MojaGrubaRyba::compPlayers++;
 
 	cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
@@ -449,7 +458,10 @@ void MojaGrubaRyba::play(unsigned int rounds)
 			// Jezeli gracz zbankrutowal pomijamy go w kolejnych turach
 			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
 			if(!it->isPlayerActive())
+			{
+				cout << it->getName() << " nie jest aktywnym graczem" << endl;
 				continue;
+			}
 
 			if(!it->getWait()) {
 
@@ -473,5 +485,4 @@ void MojaGrubaRyba::play(unsigned int rounds)
 		}
 		roundNumber++;
 	}
-
 }

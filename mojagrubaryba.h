@@ -28,8 +28,8 @@ class Player {
 		void setName(string const& _name);
 	public:
 		//TODO
-		Player();
 		Player(int _money, int _wait, int _position);
+		Player();
 		void addProperty(Nieruchomosc& property);
 		void sellProperties();
 		void bankrupt();
