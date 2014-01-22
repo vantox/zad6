@@ -12,6 +12,8 @@ using namespace std;
 	// p->sellProperties();
 // }
 
+bool debug = false;
+
 int Player::getMoney() { return money; }
 
 int Player::getWait() { return wait; }
@@ -40,14 +42,14 @@ int Player::takeMoney(int _money)
 	if(money >= _money)
 	{
 		setMoney(money - _money);
-		cout << "Gracz " << getName() << " oddaje " << _money << endl;
+		if(debug) cout << "Gracz " << getName() << " oddaje " << _money << endl;
 		return _money;
 	}
 	// Spieniezamy majatek gracza
 	sellProperties();
 	if(money < _money)
 		bankrupt();
-		cout << "Gracz " << getName() << " oddaje " << min(_money, money) << endl;
+		if(debug) cout << "Gracz " << getName() << " oddaje " << min(_money, money) << endl;
 	return min(_money, money);
 }
 
@@ -78,7 +80,7 @@ void Player::addProperty(Nieruchomosc& property)
 
 void Player::sellProperty(vector<Nieruchomosc*>::iterator it)
 {
-	cout << "Gracz " << getName() << " sprzedaje " << (*it)->getName() << " z zyskiem " << ((*it)->getPrice()) / 2 << endl;
+	if(debug) cout << "Gracz " << getName() << " sprzedaje " << (*it)->getName() << " z zyskiem " << ((*it)->getPrice()) / 2 << endl;
 	money += ((*it)->getPrice()) / 2;
 	(*it)->deleteOwner();
 	properties.erase(it);
@@ -88,9 +90,9 @@ void Player::sellProperties()
 {
 	for(auto it = properties.begin(); it < properties.end(); it++)
 	{
-		cout << getName() << " owns " << (*it)->getName() << endl;
+		if(debug) cout << getName() << " owns " << (*it)->getName() << endl;
 		bool b = wantSell((*it)->getName());
-		cout << "and does" << (b ? "" : "n't") << " want to sell it" << endl;
+		if(debug) cout << "and does" << (b ? "" : "n't") << " want to sell it" << endl;
 		//TODO moze wydzielic to wszystko do jednej metody w nieruchomosci?
 		if(b)
 			sellProperty(it);
@@ -105,7 +107,7 @@ void Player::sellProperties()
 // TODO czy w przypadku bankructwa graczy na pewno chcemy zeby pieniadze wracaly do wlasciciela?
 void Player::bankrupt()
 {
-	cout << name << " bankrutuje" << endl;
+	if(debug) cout << name << " bankrutuje" << endl;
 	for(auto it = properties.begin(); it < properties.end(); it++)
 		sellProperty(it);
 	isActive = false;
@@ -155,9 +157,12 @@ bool SmartAssComputer::wantSell(std::string const& propertyName) { return true; 
 // bool SmartAssComputer::wantSell(std::string const& propertyName) { return false; } FIXME
 
 // DumbComputer::DumbComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
-DumbComputer::DumbComputer() : ComputerPlayer() { }
+DumbComputer::DumbComputer() : ComputerPlayer() 
+{
+	movesNumber = 1;
+}
 
-bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber % 3) == 0; }
+bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber++ % 3) == 0; }
 
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
@@ -175,14 +180,14 @@ bool HumanPlayer::wantSell(std::string const& propertyName) { return humanPtr->w
 //Field::Field(string _name) : name(_name) { }
 Field::~Field()
 {
-	cout << "~Field() called\n";
+	if(debug) cout << "~Field() called\n";
 }
 
 string Field::getName() { return name; }
 
 void Nieruchomosc::changeOwnedState(bool b)
 {
-	owned - b;
+	owned = b;
 }
 
 void Nieruchomosc::setOwner(shared_ptr<Player> const p)
@@ -256,7 +261,7 @@ Depozyt::Depozyt(const string& _name) : gatheredMoney(0)
 void Depozyt::onStep(shared_ptr<Player> const p)
 {
 	gatheredMoney += p->takeMoney(15);
-	cout << "Depozyt" << endl;
+	if(debug) cout << "Depozyt" << endl;
 }
 
 void Depozyt::onStop(shared_ptr<Player> const p)
@@ -291,7 +296,7 @@ void Kara::onStep(shared_ptr<Player> const p)
 void Kara::onStop(shared_ptr<Player> const p)
 {
 	p->takeMoney(fine);
-	cout << "Kara" << endl;
+	if(debug) cout << "Kara" << endl;
 	// sellout(p);
 }
 
@@ -332,20 +337,23 @@ void Nieruchomosc::onStep(shared_ptr<Player> const p)
 }
 
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
-{
+{	
+	if(debug) cout << "gracz " << p->getName() << " zatrzymal sie na polu " << name << "\n";
 	if(owned)
 	{
+		if(debug) cout << owner->getName() << " dostaje " << charge << " od " << p->getName() << "\n";
 		owner->giveMoney(p->takeMoney(charge));
 		//FIXME gracz A ma $100, po wejsciu ma oddac $200, ale nie posiada nieruchomosci
 		//wiec wlasciciel powinien otrzymac $100, afaik mamy oddawanie pelnej kwoty
-		cout << "Nieruchomosc" << endl;
+		if(debug) cout << "Nieruchomosc" << endl;
 		// sellout(p);
 	}
 	else
 	{
+		if(debug) cout << "pole " << name << " jest wolne\n";
 		if(p->getMoney() >= price) {
 			if(p->wantBuy(getName())) {
-				cout << "Gracz " << p->getName() << " kupuje " << getName() << " za " << getPrice() << endl;
+				if(debug) cout << "Gracz " << p->getName() << " kupuje " << getName() << " za " << getPrice() << endl;
 				p->takeMoney(price);
 				p->addProperty(*this);
 				setOwner(p);
@@ -356,7 +364,7 @@ void Nieruchomosc::onStop(shared_ptr<Player> const p)
 
 Board::Board()
 {
-	cout << "Board() called\n";
+	if(debug) cout << "Board() called\n";
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Start>(new Start("Start"))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Koralowiec>(new Koralowiec("Anemonia", 160))));
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Wyspa>(new Wyspa("Wyspa"))));
@@ -373,7 +381,7 @@ Board::Board()
 
 Board::~Board()
 {
-	cout << "~Board() called\n";
+	if(debug) cout << "~Board() called\n";
 }
 
 int Board::getMaxField() { return maxField; }
@@ -381,13 +389,13 @@ shared_ptr<Field> Board::getField(int nr) { return fields[nr]; }
 
 MojaGrubaRyba::MojaGrubaRyba() : realPlayers(0), compPlayers(0)
 {
-	cout << "MojaGrubaRyba() called\n";
+	if(debug) cout << "MojaGrubaRyba() called\n";
 
 }
 
 MojaGrubaRyba::~MojaGrubaRyba()
 {
-	cout << "~MojaGrubaRyba() called\n";
+	if(debug) cout << "~MojaGrubaRyba() called\n";
 }
 
 // Poziom gry komputera:
@@ -400,7 +408,7 @@ void MojaGrubaRyba::setDie(std::shared_ptr<Die> _die)
 {
 	if(!_die)
 		return;
-	cout << "MojaGrubaRyba::setDie(...) called\n";
+	if(debug) cout << "MojaGrubaRyba::setDie(...) called\n";
 	die = _die;
 }
 
@@ -419,9 +427,9 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 	// FIXME potrzebujemy tego?
 	MojaGrubaRyba::compPlayers++;
 
-	cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
-	cout << "MojaGrubaRyba::addComputerPlayer(...) called\n";
-	cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
+	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
+	if(debug) cout << "MojaGrubaRyba::addComputerPlayer(...) called\n";
+	if(debug) cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
 }
 
 // Dodaje nowego gracza czlowieka.
@@ -431,10 +439,10 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 {
 	MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
 	MojaGrubaRyba::realPlayers++;
-	cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
-	cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
+	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
+	if(debug) cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
 	//FIXME tutaj się sypie
-	cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
+	if(debug) cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
 }
 
 // Przeprowadza rozgrywkę co najwyżej podanej liczby rund (rozgrywka może
@@ -447,11 +455,11 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 // TODO Rzuca TooFewPlayersException, jeśli liczba graczy nie pozwala na rozpoczęcie gry.
 void MojaGrubaRyba::play(unsigned int rounds)
 {
-	cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
+	if(debug) cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
 	unsigned int roundNumber = 1;
 	while(rounds >= roundNumber)
 	{
-		cout << "Runda: " << roundNumber << "-------------------------------------\n";
+		cout << "Runda: " << roundNumber << "\n";
 		int rolls;
 		for(auto it : players)
 		{
@@ -461,7 +469,7 @@ void MojaGrubaRyba::play(unsigned int rounds)
 			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
 			if(!it->isPlayerActive())
 			{
-				cout << it->getName() << " nie jest aktywnym graczem" << endl;
+				
 				continue;
 			}
 
@@ -482,14 +490,23 @@ void MojaGrubaRyba::play(unsigned int rounds)
 
 				board.getField(it->getPosition())->onStop(it);
 			}
-			if(!it->getWait()) {
-				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << "("<<it->getPosition() << ")" << " gotowka: " << it->getMoney() << "\n";
-				//cout << "Rolls: " << rolls << "\n";
+			
+		}
+		
+		for(auto it : players){
+			if(!it->isPlayerActive()){
+				cout << it->getName() << " *** bankrut ***" << endl;
+			}
+			else if(!it->getWait()) {
+				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " gotowka: " << it->getMoney() << "\n";
 			}
 			else {
-				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << "("<<it->getPosition() << ")" << " *** czekanie: " << it->getWait() << " ***\n";
+				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " *** czekanie: " << it->getWait() << " ***" << "\n";
 				it->setWait(it->getWait() - 1);
 			}
+				
+			
+			
 		}
 		roundNumber++;
 	}
