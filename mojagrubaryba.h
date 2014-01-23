@@ -66,19 +66,14 @@ class HumanPlayer : public Player {
 };
 
 class ComputerPlayer : public Player {
-	private:
-		static unsigned int numberOfCompPlayers;
-	protected:
-		unsigned int getNumberOfCompPlayers();
-		void incrNumberOfCompPlayers();
 	public:
-		ComputerPlayer();
+		ComputerPlayer(int nr);
 };
 
 // SMARTASS - kupuje wszystkie pola, na których stanie i są możliwe do kupienia.
 class SmartAssComputer : public ComputerPlayer {
 	public:
-		SmartAssComputer();
+		SmartAssComputer(int nr);
 		~SmartAssComputer() {}
 
 		bool wantBuy(std::string const& propertyName);
@@ -91,7 +86,7 @@ class DumbComputer : public ComputerPlayer {
 	private:
 		int movesNumber;
 	public:
-		DumbComputer();
+		DumbComputer(int nr);
 		~DumbComputer() {}
 
 		bool wantBuy(std::string const& propertyName);
@@ -159,17 +154,14 @@ class Kara : public Field {
 
 class Nieruchomosc : public Field {
 	protected:
-		bool owned;
 		shared_ptr<Player> owner;
 		int price, charge;
 	public:
 		Nieruchomosc(const string& _name, int _price, double tax);
-		void changeOwnedState(bool b);
 		void setOwner(shared_ptr<Player> const p);
 		void deleteOwner();
 		shared_ptr<Player> getOwner();
 		int getPrice();
-		bool getOwned();
 		int getCharge();
 		void onStop(shared_ptr<Player> const p);
 };
@@ -201,7 +193,7 @@ class Board {
 
 class MojaGrubaRyba : public GrubaRyba {
 	private:
-		int realPlayers, compPlayers, activePlayers;
+		int activePlayers;
 		vector< shared_ptr<Player> > players;
 		Board board;
 		shared_ptr<Die> die;

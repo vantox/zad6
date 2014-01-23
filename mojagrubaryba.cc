@@ -42,7 +42,6 @@ int Player::takeMoney(int _money)
 	// Gracz posiada dostateczna liczbe pieniedzy na splate dlugu
 	if(money >= _money)
 	{
-		// setMoney(money - _money);
 		money -= _money;
 		if(debug) cout << "Gracz " << getName() << " oddaje " << _money << endl;
 		return _money;
@@ -118,55 +117,26 @@ money(_money), wait(_wait), position(_position), isActive(true) { }
 // TODO delegating constructors, czy to jest ok?
 Player::Player( ): Player(0, 0, 0) { }
 
-ComputerPlayer::ComputerPlayer() : Player()
+ComputerPlayer::ComputerPlayer(int nr) : Player()
 {
-	incrNumberOfCompPlayers();
 	setMoney(MojaGrubaRyba::startMoney);
 	ostringstream tmp;
-	tmp << "Gracz" << getNumberOfCompPlayers();
+	tmp << "Gracz" << nr;
 	setName(tmp.str());
 }
 
-unsigned int ComputerPlayer::numberOfCompPlayers = 0;
-
-void ComputerPlayer::incrNumberOfCompPlayers()
-{
-	numberOfCompPlayers++;
-}
-
-unsigned int ComputerPlayer::getNumberOfCompPlayers()
-{
-	return numberOfCompPlayers;
-}
-
-// TODO polaczyc z dumbcomputer()
-// SmartAssComputer::SmartAssComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
-SmartAssComputer::SmartAssComputer() : ComputerPlayer()
-{
-	// incrNumberOfCompPlayers();
-	// ostringstream tmp;
-	// tmp << "Gracz" << getNumberOfCompPlayers();
-	// setName(tmp.str());
-	// setMoney(MojaGrubaRyba::startMoney);
-	// setWait(0);
-}
+SmartAssComputer::SmartAssComputer(int nr) : ComputerPlayer(nr) { }
 
 bool SmartAssComputer::wantBuy(std::string const& propertyName) { return true; }
 
 bool SmartAssComputer::wantSell(std::string const& propertyName) { return true; }
-// bool SmartAssComputer::wantSell(std::string const& propertyName) { return false; } FIXME
 
-// DumbComputer::DumbComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
-DumbComputer::DumbComputer() : ComputerPlayer()
-{
-	movesNumber = 1;
-}
+DumbComputer::DumbComputer(int nr) : ComputerPlayer(nr), movesNumber(1) { }
 
 bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumber++ % 3) == 0; }
 
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
-// TODO Player() niepotrzebny na liscie inicjalizacyjnej, ale tak jest chyba czytelniej
 HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : Player(), humanPtr(human) 
 {
 	setName(human->getName());
@@ -192,20 +162,13 @@ string const& Field::getName() const
 void Field::onStep(shared_ptr<Player> const p) { }
 void Field::onStop(shared_ptr<Player> const p) { }
 
-void Nieruchomosc::changeOwnedState(bool b)
-{
-	owned = b;
-}
-
 void Nieruchomosc::setOwner(shared_ptr<Player> const p)
 {
-	changeOwnedState(true);
 	owner = p;
 }
 
 void Nieruchomosc::deleteOwner()
 {
-	changeOwnedState(false);
 	setOwner(nullptr);
 }
 
@@ -224,21 +187,10 @@ int Nieruchomosc::getCharge()
 	return charge;
 }
 
-bool Nieruchomosc::getOwned()
-{
-	return owned;
-}
 
-// TODO dziedziczenie konstruktora
 Wyspa::Wyspa(const string& _name) : Field(_name) { }
-// {
-	// name = _name;
-// }
 
 Start::Start(const string& _name) : Field(_name) { }
-// {
-	// name = _name;
-// }
 
 void Start::onStep(shared_ptr<Player> const p)
 {
@@ -251,9 +203,6 @@ void Start::onStop(shared_ptr<Player> const p)
 }
 
 Depozyt::Depozyt(const string& _name) : Field(_name), gatheredMoney(0) { }
-// {
-	// name = _name;
-// }
 
 void Depozyt::onStep(shared_ptr<Player> const p)
 {
@@ -268,9 +217,6 @@ void Depozyt::onStop(shared_ptr<Player> const p)
 }
 
 Nagroda::Nagroda(const string& _name, int _prize) : Field(_name), prize(_prize) { }
-// {
-	// name = _name;
-// }
 
 void Nagroda::onStop(shared_ptr<Player> const p)
 {
@@ -278,9 +224,6 @@ void Nagroda::onStop(shared_ptr<Player> const p)
 }
 
 Kara::Kara(const string& _name, int _fine) : Field(_name), fine(_fine) { }
-// {
-	// name = _name;
-// }
 
 void Kara::onStop(shared_ptr<Player> const p)
 {
@@ -290,9 +233,6 @@ void Kara::onStop(shared_ptr<Player> const p)
 }
 
 Akwarium::Akwarium(const string& _name, int _rounds) : Field(_name), rounds(_rounds) { }
-// {
-	// name = _name;
-// }
 
 void Akwarium::onStop(shared_ptr<Player> const p)
 {
@@ -300,7 +240,7 @@ void Akwarium::onStop(shared_ptr<Player> const p)
 }
 
 Nieruchomosc::Nieruchomosc(const string& _name, int _price, double tax) :
-	Field(_name), owned(false), owner(shared_ptr<Player>()), price(_price), charge(static_cast<int>(tax * _price)) { }
+	Field(_name), owner(nullptr), price(_price), charge(static_cast<int>(tax * _price)) { }
 
 Koralowiec::Koralowiec(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.2) { }
 
@@ -313,8 +253,6 @@ void Nieruchomosc::onStop(shared_ptr<Player> const p)
 	{
 		if(debug) cout << owner->getName() << " dostaje " << charge << " od " << p->getName() << "\n";
 		owner->giveMoney(p->takeMoney(charge));
-		//FIXME gracz A ma $100, po wejsciu ma oddac $200, ale nie posiada nieruchomosci
-		//wiec wlasciciel powinien otrzymac $100, afaik mamy oddawanie pelnej kwoty
 		if(debug) cout << "Nieruchomosc" << endl;
 	}
 	else
@@ -356,7 +294,7 @@ Board::~Board()
 int Board::getMaxField() { return maxField; }
 shared_ptr<Field> Board::getField(int nr) { return fields[nr]; }
 
-MojaGrubaRyba::MojaGrubaRyba() : realPlayers(0), compPlayers(0), activePlayers(0)
+MojaGrubaRyba::MojaGrubaRyba() : activePlayers(0)
 {
 	if(debug) cout << "MojaGrubaRyba() called\n";
 
@@ -387,11 +325,12 @@ void MojaGrubaRyba::setDie(std::shared_ptr<Die> _die)
 // TODO Rzuca TooManyPlayersException, jeśli osiągnięto już maksymalną liczbę graczy.
 void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 {
+	int nr = players.size() + 1;
 	if(level == GrubaRyba::ComputerLevel::DUMB)
-		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<DumbComputer>(new DumbComputer())));
+		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<DumbComputer>(new DumbComputer(nr))));
 
 	if(level == GrubaRyba::ComputerLevel::SMARTASS)
-		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer())));
+		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer(nr))));
 
 	
 	activePlayers++;
@@ -409,11 +348,9 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 	if((int)players.size() == maxPlayers)
 		throw TooManyPlayersException(maxPlayers);
 	players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
-	realPlayers++;
 	activePlayers++;
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
 	if(debug) cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
-	//FIXME tutaj się sypie
 	if(debug) cout << "name: " << (MojaGrubaRyba::players.back())->getName() << endl;
 	
 }
@@ -443,7 +380,6 @@ void MojaGrubaRyba::play(unsigned int rounds)
 			if(activePlayers == 1)
 				break;
 			// Jezeli gracz zbankrutowal pomijamy go w kolejnych turach
-			// TODO dopytac o to czy takie skipniecie jest ok. Co z koscmi?
 			if(!it->isPlayerActive())
 			{
 				continue;
