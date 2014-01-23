@@ -206,7 +206,7 @@ void Nieruchomosc::setOwner(shared_ptr<Player> const p)
 void Nieruchomosc::deleteOwner()
 {
 	changeOwnedState(false);
-	setOwner(shared_ptr<Player>());
+	setOwner(nullptr);
 }
 
 shared_ptr<Player> Nieruchomosc::getOwner()
@@ -309,7 +309,7 @@ Publiczny::Publiczny(const string& _name, int _price) : Nieruchomosc(_name, _pri
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
 {	
 	if(debug) cout << "gracz " << p->getName() << " zatrzymal sie na polu " << name << "\n";
-	if(owned)
+	if(owner != nullptr)
 	{
 		if(debug) cout << owner->getName() << " dostaje " << charge << " od " << p->getName() << "\n";
 		owner->giveMoney(p->takeMoney(charge));
