@@ -167,7 +167,7 @@ bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumbe
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
 // TODO Player() niepotrzebny na liscie inicjalizacyjnej, ale tak jest chyba czytelniej
-HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : humanPtr(human), Player()
+HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : Player(), humanPtr(human) 
 {
 	setName(human->getName());
 	setMoney(MojaGrubaRyba::startMoney);
@@ -250,7 +250,7 @@ void Start::onStop(shared_ptr<Player> const p)
 	p->giveMoney(50);
 }
 
-Depozyt::Depozyt(const string& _name) : gatheredMoney(0), Field(_name) { }
+Depozyt::Depozyt(const string& _name) : Field(_name), gatheredMoney(0) { }
 // {
 	// name = _name;
 // }
@@ -267,7 +267,7 @@ void Depozyt::onStop(shared_ptr<Player> const p)
 	gatheredMoney = 0;
 }
 
-Nagroda::Nagroda(const string& _name, int _prize) : prize(_prize), Field(_name) { }
+Nagroda::Nagroda(const string& _name, int _prize) : Field(_name), prize(_prize) { }
 // {
 	// name = _name;
 // }
@@ -277,7 +277,7 @@ void Nagroda::onStop(shared_ptr<Player> const p)
 	p->giveMoney(prize);
 }
 
-Kara::Kara(const string& _name, int _fine) : fine(_fine), Field(_name) { }
+Kara::Kara(const string& _name, int _fine) : Field(_name), fine(_fine) { }
 // {
 	// name = _name;
 // }
@@ -286,10 +286,10 @@ void Kara::onStop(shared_ptr<Player> const p)
 {
 	p->takeMoney(fine);
 	if(debug) cout << "Kara" << endl;
-	// sellout(p);
+	
 }
 
-Akwarium::Akwarium(const string& _name, int _rounds) : rounds(_rounds), Field(_name) { }
+Akwarium::Akwarium(const string& _name, int _rounds) : Field(_name), rounds(_rounds) { }
 // {
 	// name = _name;
 // }
@@ -300,7 +300,7 @@ void Akwarium::onStop(shared_ptr<Player> const p)
 }
 
 Nieruchomosc::Nieruchomosc(const string& _name, int _price, double tax) :
-	Field(_name), charge(static_cast<int>(tax * _price)), owned(false), owner(shared_ptr<Player>()), price(_price) { }
+	Field(_name), owned(false), owner(shared_ptr<Player>()), price(_price), charge(static_cast<int>(tax * _price)) { }
 
 Koralowiec::Koralowiec(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.2) { }
 
@@ -393,8 +393,7 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 	if(level == GrubaRyba::ComputerLevel::SMARTASS)
 		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer())));
 
-	// FIXME potrzebujemy tego?
-	compPlayers++;
+	
 	activePlayers++;
 
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
@@ -407,7 +406,7 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 // TODO Rzuca TooManyPlayersException, jeśli osiągnięto już maksymalną liczbę graczy.
 void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 {
-	if(players.size() == maxPlayers)
+	if((int)players.size() == maxPlayers)
 		throw TooManyPlayersException(maxPlayers);
 	players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
 	realPlayers++;
@@ -430,7 +429,7 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 void MojaGrubaRyba::play(unsigned int rounds)
 {
 	if(debug) cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
-	if(players.size() < minPlayers)
+	if((int)players.size() < minPlayers)
 		throw TooFewPlayersException(minPlayers);
 	if(!die)
 		throw NoDieException();

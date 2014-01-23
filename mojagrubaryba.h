@@ -55,9 +55,6 @@ class Player {
 		virtual bool wantSell(std::string const& propertyName) = 0;
 };
 
-void sellout(shared_ptr<Player> const p);
-
-// TODO zintegrowac z humanem z grubaryba.h
 class HumanPlayer : public Player {
 	public:
 		HumanPlayer(std::shared_ptr<Human> human);
