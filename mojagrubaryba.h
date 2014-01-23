@@ -111,7 +111,7 @@ class Field {
 	public:
 		Field(const string& _name);
 		~Field();
-		string getName();
+		string const& getName() const;
 		// Co się dzieje po przejściu przez pole
 		virtual void onStep(shared_ptr<Player> const p);
 		// Co się dzieje po zatrzymaniu na polu

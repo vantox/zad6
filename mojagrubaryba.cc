@@ -7,11 +7,20 @@ using namespace std;
 
 bool debug = false;
 
-int Player::getMoney() { return money; }
+int Player::getMoney()
+{
+	return money;
+}
 
-int Player::getWait() { return wait; }
+int Player::getWait()
+{
+	return wait;
+}
 
-bool Player::isPlayerActive() { return isActive; }
+bool Player::isPlayerActive()
+{
+	return isActive;
+}
 
 void Player::setName(string const& _name)
 {
@@ -94,7 +103,7 @@ void Player::sellProperties()
 }
 // TODO bankructwo wszystkich graczy??
 // TODO czy w przypadku bankructwa graczy na pewno chcemy zeby pieniadze wracaly do wlasciciela?
-// Metoda odpowiadajaca za bankructwo gracza
+// Metoda odpowiadajaca za bankructwo gracza, iterujemy po wszystkich nieruchomosciach spieniezajac je
 void Player::bankrupt()
 {
 	if(debug) cout << name << " bankrutuje" << endl;
@@ -148,7 +157,7 @@ bool SmartAssComputer::wantSell(std::string const& propertyName) { return true; 
 // bool SmartAssComputer::wantSell(std::string const& propertyName) { return false; } FIXME
 
 // DumbComputer::DumbComputer() : Player(MojaGrubaRyba::startMoney, 0, 0)
-DumbComputer::DumbComputer() : ComputerPlayer() 
+DumbComputer::DumbComputer() : ComputerPlayer()
 {
 	movesNumber = 1;
 }
@@ -168,15 +177,17 @@ bool HumanPlayer::wantBuy(std::string const& propertyName) { return humanPtr->wa
 
 bool HumanPlayer::wantSell(std::string const& propertyName) { return humanPtr->wantSell(propertyName); }
 
-//Field::Field(string _name) : name(_name) { }
+Field::Field(const string& _name) : name(_name) { }
+
 Field::~Field()
 {
 	if(debug) cout << "~Field() called\n";
 }
 
-Field::Field(const string& _name) : name(_name) { }
-
-string Field::getName() { return name; }
+string const& Field::getName() const
+{
+	return name;
+}
 
 void Field::onStep(shared_ptr<Player> const p) { }
 void Field::onStop(shared_ptr<Player> const p) { }
@@ -290,23 +301,10 @@ void Akwarium::onStop(shared_ptr<Player> const p)
 
 Nieruchomosc::Nieruchomosc(const string& _name, int _price, double tax) :
 	Field(_name), charge(static_cast<int>(tax * _price)), owned(false), owner(shared_ptr<Player>()), price(_price) { }
+
 Koralowiec::Koralowiec(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.2) { }
-// {
-	// name = _name;
-	// charge = _price / 5;
-	// owned = false;
-	// owner = nullptr;
-	// price = _price;
-// }
 
 Publiczny::Publiczny(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.4) { }
-// {
-	// name = _name;
-	// charge = _price * 2 / 5;
-	// owned = false;
-	// owner = nullptr;
-	// price = _price;
-// }
 
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
 {	
@@ -318,7 +316,6 @@ void Nieruchomosc::onStop(shared_ptr<Player> const p)
 		//FIXME gracz A ma $100, po wejsciu ma oddac $200, ale nie posiada nieruchomosci
 		//wiec wlasciciel powinien otrzymac $100, afaik mamy oddawanie pelnej kwoty
 		if(debug) cout << "Nieruchomosc" << endl;
-		// sellout(p);
 	}
 	else
 	{
