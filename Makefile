@@ -1,5 +1,5 @@
 COMP = g++
-CFLAGS = -Wall -std=c++11 -Wextra -pedantic
+CFLAGS = -Wall -std=c++11 -Wextra -pedantic -Wno-unused-parameter
 
 all: grubaryba_example
 
