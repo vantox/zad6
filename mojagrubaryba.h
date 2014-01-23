@@ -109,19 +109,17 @@ class Field {
 	protected:
 		string name;
 	public:
-		//Field(string _name);
+		Field(const string& _name);
 		~Field();
 		string getName();
-		// co się dzieje po przejściu przez pole
-		virtual void onStep(shared_ptr<Player> const p) = 0;
-		// co się dzieje po zatrzymaniu na polu
-		virtual void onStop(shared_ptr<Player> const p) = 0;
+		// Co się dzieje po przejściu przez pole
+		virtual void onStep(shared_ptr<Player> const p);
+		// Co się dzieje po zatrzymaniu na polu
+		virtual void onStop(shared_ptr<Player> const p);
 };
 
 class Wyspa : public Field {
 	public:
-		void onStep(shared_ptr<Player> const p);
-		void onStop(shared_ptr<Player> const p);
 		Wyspa(const string& _name);
 };
 
@@ -145,7 +143,6 @@ class Akwarium : public Field {
 	private:
 		int rounds;
 	public:
-		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
 		Akwarium(const string& _name, int _rounds);
 };
@@ -154,7 +151,6 @@ class Nagroda : public Field {
 	private:
 		int prize;
 	public:
-		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
 		Nagroda(const string& _name, int _prize);
 };
@@ -163,7 +159,6 @@ class Kara : public Field {
 	private:
 		int fine;
 	public:
-		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
 		Kara(const string& _name, int _fine);
 };
@@ -174,6 +169,7 @@ class Nieruchomosc : public Field {
 		shared_ptr<Player> owner;
 		int price, charge;
 	public:
+		Nieruchomosc(const string& _name, int _price, double tax);
 		void changeOwnedState(bool b);
 		void setOwner(shared_ptr<Player> const p);
 		void deleteOwner();
@@ -181,7 +177,6 @@ class Nieruchomosc : public Field {
 		int getPrice();
 		bool getOwned();
 		int getCharge();
-		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
 };
 

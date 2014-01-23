@@ -5,13 +5,6 @@
 
 using namespace std;
 
-//TODO ta funkcja jest nieco sztuczna ale realizuje obiektowość, zdecydować czy usuwamy
-// void sellout(shared_ptr<Player> const p)
-// {
-	// cout << "sellout(" << p->getName() << ") called, player have: $" << p->getMoney() << endl;
-	// p->sellProperties();
-// }
-
 bool debug = false;
 
 int Player::getMoney() { return money; }
@@ -20,7 +13,6 @@ int Player::getWait() { return wait; }
 
 bool Player::isPlayerActive() { return isActive; }
 
-// void Player::setName(string _name)
 void Player::setName(string const& _name)
 {
 	name = _name;
@@ -41,7 +33,8 @@ int Player::takeMoney(int _money)
 	// Gracz posiada dostateczna liczbe pieniedzy na splate dlugu
 	if(money >= _money)
 	{
-		setMoney(money - _money);
+		// setMoney(money - _money);
+		money -= _money;
 		if(debug) cout << "Gracz " << getName() << " oddaje " << _money << endl;
 		return _money;
 	}
@@ -49,13 +42,13 @@ int Player::takeMoney(int _money)
 	sellProperties();
 	if(money < _money)
 		bankrupt();
-		if(debug) cout << "Gracz " << getName() << " oddaje " << min(_money, money) << endl;
+	if(debug) cout << "Gracz " << getName() << " oddaje " << min(_money, money) << endl;
 	return min(_money, money);
 }
 
 void Player::giveMoney(int _money)
 {
-	setMoney(money + _money);
+	money += _money;
 }
 
 void Player::setPosition(int _position)
@@ -86,25 +79,22 @@ void Player::sellProperty(vector<Nieruchomosc*>::iterator it)
 	properties.erase(it);
 }
 
+// Metoda sprzedajaca wszystkie nieruchomosci gracza
 void Player::sellProperties()
 {
 	for(auto it = properties.begin(); it < properties.end(); it++)
 	{
+		// TODO po usunieciu kodu debugujacego usunac deklaracje bool b
 		if(debug) cout << getName() << " owns " << (*it)->getName() << endl;
 		bool b = wantSell((*it)->getName());
 		if(debug) cout << "and does" << (b ? "" : "n't") << " want to sell it" << endl;
-		//TODO moze wydzielic to wszystko do jednej metody w nieruchomosci?
 		if(b)
 			sellProperty(it);
-		// {
-			// money += ((*it)->getPrice()) / 2;
-			// (*it)->deleteOwner();
-			// properties.erase(it);
-		// }
 	}
 }
 // TODO bankructwo wszystkich graczy??
 // TODO czy w przypadku bankructwa graczy na pewno chcemy zeby pieniadze wracaly do wlasciciela?
+// Metoda odpowiadajaca za bankructwo gracza
 void Player::bankrupt()
 {
 	if(debug) cout << name << " bankrutuje" << endl;
@@ -116,6 +106,7 @@ void Player::bankrupt()
 Player::Player(int _money, int _wait, int _position) :
 money(_money), wait(_wait), position(_position), isActive(true) { }
 
+// TODO delegating constructors, czy to jest ok?
 Player::Player( ): Player(0, 0, 0) { }
 
 ComputerPlayer::ComputerPlayer() : Player()
@@ -183,7 +174,12 @@ Field::~Field()
 	if(debug) cout << "~Field() called\n";
 }
 
+Field::Field(const string& _name) : name(_name) { }
+
 string Field::getName() { return name; }
+
+void Field::onStep(shared_ptr<Player> const p) { }
+void Field::onStop(shared_ptr<Player> const p) { }
 
 void Nieruchomosc::changeOwnedState(bool b)
 {
@@ -222,26 +218,16 @@ bool Nieruchomosc::getOwned()
 	return owned;
 }
 
-Wyspa::Wyspa(const string& _name)
-{
-	name = _name;
-}
+// TODO dziedziczenie konstruktora
+Wyspa::Wyspa(const string& _name) : Field(_name) { }
+// {
+	// name = _name;
+// }
 
-void Wyspa::onStep(shared_ptr<Player> const p)
-{
-	
-}
-
-void Wyspa::onStop(shared_ptr<Player> const p)
-{
-
-	
-}
-
-Start::Start(const string& _name)
-{
-	name = _name;
-}
+Start::Start(const string& _name) : Field(_name) { }
+// {
+	// name = _name;
+// }
 
 void Start::onStep(shared_ptr<Player> const p)
 {
@@ -253,10 +239,10 @@ void Start::onStop(shared_ptr<Player> const p)
 	p->giveMoney(50);
 }
 
-Depozyt::Depozyt(const string& _name) : gatheredMoney(0)
-{
-	name = _name;
-}
+Depozyt::Depozyt(const string& _name) : gatheredMoney(0), Field(_name) { }
+// {
+	// name = _name;
+// }
 
 void Depozyt::onStep(shared_ptr<Player> const p)
 {
@@ -270,28 +256,20 @@ void Depozyt::onStop(shared_ptr<Player> const p)
 	gatheredMoney = 0;
 }
 
-Nagroda::Nagroda(const string& _name, int _prize) : prize(_prize)
-{
-	name = _name;
-}
-
-void Nagroda::onStep(shared_ptr<Player> const p)
-{
-}
+Nagroda::Nagroda(const string& _name, int _prize) : prize(_prize), Field(_name) { }
+// {
+	// name = _name;
+// }
 
 void Nagroda::onStop(shared_ptr<Player> const p)
 {
 	p->giveMoney(prize);
 }
 
-Kara::Kara(const string& _name, int _fine) : fine(_fine)
-{
-	name = _name;
-}
-
-void Kara::onStep(shared_ptr<Player> const p)
-{
-}
+Kara::Kara(const string& _name, int _fine) : fine(_fine), Field(_name) { }
+// {
+	// name = _name;
+// }
 
 void Kara::onStop(shared_ptr<Player> const p)
 {
@@ -300,41 +278,35 @@ void Kara::onStop(shared_ptr<Player> const p)
 	// sellout(p);
 }
 
-Akwarium::Akwarium(const string& _name, int _rounds) : rounds(_rounds)
-{
-	name = _name;
-}
-
-void Akwarium::onStep(shared_ptr<Player> const p)
-{
-}
+Akwarium::Akwarium(const string& _name, int _rounds) : rounds(_rounds), Field(_name) { }
+// {
+	// name = _name;
+// }
 
 void Akwarium::onStop(shared_ptr<Player> const p)
 {
 	p->setWait(rounds);
 }
 
-Koralowiec::Koralowiec(const string& _name, int _price)
-{
-	name = _name;
-	charge = _price / 5;
-	owned = false;
-	owner = nullptr;
-	price = _price;
-}
+Nieruchomosc::Nieruchomosc(const string& _name, int _price, double tax) :
+	Field(_name), charge(static_cast<int>(tax * _price)), owned(false), owner(shared_ptr<Player>()), price(_price) { }
+Koralowiec::Koralowiec(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.2) { }
+// {
+	// name = _name;
+	// charge = _price / 5;
+	// owned = false;
+	// owner = nullptr;
+	// price = _price;
+// }
 
-Publiczny::Publiczny(const string& _name, int _price)
-{
-	name = _name;
-	charge = _price * 2 / 5;
-	owned = false;
-	owner = nullptr;
-	price = _price;
-}
-
-void Nieruchomosc::onStep(shared_ptr<Player> const p)
-{
-}
+Publiczny::Publiczny(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.4) { }
+// {
+	// name = _name;
+	// charge = _price * 2 / 5;
+	// owned = false;
+	// owner = nullptr;
+	// price = _price;
+// }
 
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
 {	
@@ -516,9 +488,6 @@ void MojaGrubaRyba::play(unsigned int rounds)
 				cout << it->getName() << " pole: " << board.getField(it->getPosition())->getName() << " *** czekanie: " << it->getWait() << " *** " << "\n";
 				
 			}
-				
-			
-			
 		}
 		roundNumber++;
 	}
