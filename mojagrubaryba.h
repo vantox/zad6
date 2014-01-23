@@ -42,6 +42,7 @@ class Player {
 		bool isPlayerActive();
 		int takeMoney(int _money);
 		void giveMoney(int _money);
+		void reset();
 		virtual ~Player() {}
 
 		// Zwraca imię człowieka.
@@ -59,8 +60,8 @@ class HumanPlayer : public Player {
 	public:
 		HumanPlayer(std::shared_ptr<Human> human);
 		bool wantBuy(std::string const& propertyName);
-
 		bool wantSell(std::string const& propertyName);
+		
 	private:
 		std::shared_ptr<Human> humanPtr;
 };
@@ -89,6 +90,7 @@ class DumbComputer : public ComputerPlayer {
 		DumbComputer(int nr);
 		~DumbComputer() {}
 
+		void reset();
 		bool wantBuy(std::string const& propertyName);
 
 		bool wantSell(std::string const& propertyName);
@@ -101,6 +103,8 @@ class Field {
 		Field(const string& _name);
 		~Field();
 		string const& getName() const;
+		
+		void reset();
 		// Co się dzieje po przejściu przez pole
 		virtual void onStep(shared_ptr<Player> const p);
 		// Co się dzieje po zatrzymaniu na polu
@@ -123,6 +127,7 @@ class Depozyt : public Field {
 	private:
 		int gatheredMoney;
 	public:
+		void reset();
 		void onStep(shared_ptr<Player> const p);
 		void onStop(shared_ptr<Player> const p);
 		Depozyt(const string& _name);
@@ -157,6 +162,7 @@ class Nieruchomosc : public Field {
 		shared_ptr<Player> owner;
 		int price, charge;
 	public:
+		void reset();
 		Nieruchomosc(const string& _name, int _price, double tax);
 		void setOwner(shared_ptr<Player> const p);
 		void deleteOwner();
@@ -186,6 +192,7 @@ class Board {
 		// Board(vector<int>& allFields);
 		Board();
 		~Board();
+		void reset();
 		int getMaxField();
 		// unique_ptr<Field> getField(int nr);
 		shared_ptr<Field> getField(int nr);
@@ -206,7 +213,7 @@ class MojaGrubaRyba : public GrubaRyba {
 		// Poziom gry komputera:
 		// DUMB - kupuje co trzecie pole, na którym stanie i jest możliwe do kupienia;
 		// SMARTASS - kupuje wszystkie pola, na których stanie i są możliwe do kupienia.
-
+		void reset();
 		// Przekazuje prototypową kostkę do gry.
 		// Jeżeli argumentem jest pusty wskaźnik, to nie wykonuje żadnej operacji (ale nie ma błędu).
 		void setDie(std::shared_ptr<Die> die);

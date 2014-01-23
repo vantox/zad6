@@ -114,6 +114,16 @@ void Player::bankrupt()
 Player::Player(int _money, int _wait, int _position) :
 money(_money), wait(_wait), position(_position), isActive(true) { }
 
+
+void Player::reset()
+{
+	money = MojaGrubaRyba::startMoney;
+	properties.clear();
+	position = 0;
+	wait = 0;
+	isActive = true;
+}
+
 // TODO delegating constructors, czy to jest ok?
 Player::Player( ): Player(0, 0, 0) { }
 
@@ -137,6 +147,11 @@ bool DumbComputer::wantBuy(std::string const& propertyName) { return (movesNumbe
 
 bool DumbComputer::wantSell(std::string const& propertyName) { return false; }
 
+void DumbComputer::reset()
+{
+	movesNumber = 1;
+}
+		
 HumanPlayer::HumanPlayer(std::shared_ptr<Human> human) : Player(), humanPtr(human) 
 {
 	setName(human->getName());
@@ -161,6 +176,8 @@ string const& Field::getName() const
 
 void Field::onStep(shared_ptr<Player> const p) { }
 void Field::onStop(shared_ptr<Player> const p) { }
+
+void Field::reset() { }
 
 void Nieruchomosc::setOwner(shared_ptr<Player> const p)
 {
@@ -216,6 +233,12 @@ void Depozyt::onStop(shared_ptr<Player> const p)
 	gatheredMoney = 0;
 }
 
+
+void Depozyt::reset()
+{
+	gatheredMoney = 0;
+}
+
 Nagroda::Nagroda(const string& _name, int _prize) : Field(_name), prize(_prize) { }
 
 void Nagroda::onStop(shared_ptr<Player> const p)
@@ -245,6 +268,12 @@ Nieruchomosc::Nieruchomosc(const string& _name, int _price, double tax) :
 Koralowiec::Koralowiec(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.2) { }
 
 Publiczny::Publiczny(const string& _name, int _price) : Nieruchomosc(_name, _price, 0.4) { }
+
+
+void Nieruchomosc::reset()
+{
+	owner = nullptr;	
+}
 
 void Nieruchomosc::onStop(shared_ptr<Player> const p)
 {	
@@ -286,6 +315,11 @@ Board::Board()
 	fields.push_back(dynamic_pointer_cast<Field>( shared_ptr<Kara>(new Kara("Rekin", 180))));
 }
 
+void Board::reset()
+{
+	for(auto it : fields)
+		it->reset();
+}
 Board::~Board()
 {
 	if(debug) cout << "~Board() called\n";
@@ -365,6 +399,7 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 // TODO Rzuca TooFewPlayersException, jeśli liczba graczy nie pozwala na rozpoczęcie gry.
 void MojaGrubaRyba::play(unsigned int rounds)
 {
+	reset();
 	if(debug) cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
 	if((int)players.size() < minPlayers)
 		throw TooFewPlayersException(minPlayers);
@@ -429,4 +464,12 @@ void MojaGrubaRyba::play(unsigned int rounds)
 		}
 		roundNumber++;
 	}
+}
+
+void MojaGrubaRyba::reset()
+{
+	activePlayers = players.size();
+	for(auto it : players)
+		it->reset();
+	board.reset();	
 }
