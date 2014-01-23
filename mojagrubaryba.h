@@ -103,9 +103,6 @@ class DumbComputer : public ComputerPlayer {
 };
 
 class Field {
-	private:
-		//TODO const dalem protected żeby można było konstruktorem z podklasy przypisać
-		//string name;
 	protected:
 		string name;
 	public:

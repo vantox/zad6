@@ -388,13 +388,13 @@ void MojaGrubaRyba::setDie(std::shared_ptr<Die> _die)
 void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 {
 	if(level == GrubaRyba::ComputerLevel::DUMB)
-		MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>( shared_ptr<DumbComputer>(new DumbComputer())));
+		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<DumbComputer>(new DumbComputer())));
 
 	if(level == GrubaRyba::ComputerLevel::SMARTASS)
-		MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer())));
+		players.push_back(dynamic_pointer_cast<Player>( shared_ptr<SmartAssComputer>(new SmartAssComputer())));
 
 	// FIXME potrzebujemy tego?
-	MojaGrubaRyba::compPlayers++;
+	compPlayers++;
 	activePlayers++;
 
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
@@ -407,8 +407,10 @@ void MojaGrubaRyba::addComputerPlayer(ComputerLevel level)
 // TODO Rzuca TooManyPlayersException, jeśli osiągnięto już maksymalną liczbę graczy.
 void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 {
-	MojaGrubaRyba::players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
-	MojaGrubaRyba::realPlayers++;
+	if(players.size() == maxPlayers)
+		throw TooManyPlayersException(maxPlayers);
+	players.push_back(dynamic_pointer_cast<Player>(shared_ptr<HumanPlayer>(new HumanPlayer(human))));
+	realPlayers++;
 	activePlayers++;
 	if(debug) cout << "players.size() = " << MojaGrubaRyba::players.size() << endl;
 	if(debug) cout << "MojaGrubaRyba::addHumanPlayer(...) called\n";
@@ -428,6 +430,10 @@ void MojaGrubaRyba::addHumanPlayer(std::shared_ptr<Human> human)
 void MojaGrubaRyba::play(unsigned int rounds)
 {
 	if(debug) cout << "MojaGrubaRyba::play(" << rounds << ") called\n";
+	if(players.size() < minPlayers)
+		throw TooFewPlayersException(minPlayers);
+	if(!die)
+		throw NoDieException();
 	unsigned int roundNumber = 1;
 	while((rounds >= roundNumber) && (activePlayers > 1))
 	{
